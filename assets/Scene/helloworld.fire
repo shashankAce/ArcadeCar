@@ -1069,6 +1069,10 @@
       "__id__": 19
     },
     "_enabled": true,
+    "accelerationFactor": 100,
+    "turnFactor": 300,
+    "driftFactor": 0.8,
+    "maxSpeed": 100,
     "_id": "6cJ6ZXzq9FoYnjkWxco7lI"
   },
   {

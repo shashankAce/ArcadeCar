@@ -1,22 +1,17 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
-
 const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class CarPhysics extends cc.Component {
 
-
+    @property
     public accelerationFactor = 100;
-    public turnFactor = 200;    // turn speed
-
-    private magnitude = 100;    // turn / speed magnitude
-    private driftFactor = 0.99;   // specify drift value
+    @property
+    public turnFactor = 300;    // turn speed
+    @property
+    public driftFactor = 0;   // specify drift value
+    @property
     private maxSpeed = 100;     // max speed
+    private magnitude = 100;    // turn / speed magnitude
 
     private moveInput: number = 0;
     private rotateInput: number = 0;
