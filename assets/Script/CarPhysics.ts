@@ -15,9 +15,8 @@ export default class CarPhysics extends cc.Component {
     public turnFactor = 200;    // turn speed
 
     private magnitude = 100;    // turn / speed magnitude
-    private driftFactor = 1;   // specify drift value
-    // private maxSpeed = 100;     // max speed
-    private maxForceMagnitude = 100;
+    private driftFactor = 0.99;   // specify drift value
+    private maxSpeed = 100;     // max speed
 
     private moveInput: number = 0;
     private rotateInput: number = 0;
@@ -29,7 +28,6 @@ export default class CarPhysics extends cc.Component {
 
     public forwardVelocity = cc.v2()
     public rightVelocity = cc.v2();
-    private isbraking: boolean = false;
 
 
     onLoad() {
@@ -38,23 +36,7 @@ export default class CarPhysics extends cc.Component {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
 
-
         cc.view.enableAutoFullScreen(true);
-
-        console.log(this.checkPan(191));
-
-    }
-
-    checkPan(num) {
-
-        let value = 0;
-        let original = num;
-        while (num) {
-            let rem = num % 10;
-            value = value * 10 + rem;
-            num = Math.floor(num / 10)
-        }
-        return value == original;
     }
 
     onDisable() {
@@ -94,21 +76,22 @@ export default class CarPhysics extends cc.Component {
         this.setInputVector();
     }
 
-    update(dt: number) {
-        this.forwardVelocity = this.calculateForce();
-        this.rightVelocity = this.calculateSteerForce();
-
-        this.applyForce(dt);
-        this.killOtrthogonalVelocity();
-        this.applySteering(dt);
-    }
-
     setInputVector() {
         this.accelerationInput = this.moveInput;
         this.steeringInput = this.rotateInput;
         if (this.accelerationInput < 0) {
             this.steeringInput = -this.rotateInput;
         }
+    }
+
+    update(dt: number) {
+        this.forwardVelocity = this.calculateForce();
+        this.rightVelocity = this.calculateSteerForce();
+
+        this.applyForce(dt);
+        this.applySteering(dt);
+        this.killOrthogonalVelocity();
+        this.limitCarSpeed();
     }
 
     applyForce(dt) {
@@ -119,27 +102,6 @@ export default class CarPhysics extends cc.Component {
         } else
             this.body.linearDamping = 0;
 
-
-
-        const limitedForce = this.limitForceMagnitude(this.forwardVelocity.multiplyScalar(this.forwardVelocity.mag()), this.maxForceMagnitude);
-
-        // max speed control
-        // const forwardVelocity = this.forwardVelocity.mag();
-        // if (forwardVelocity > this.maxSpeed && this.accelerationInput > 0) {//forward direction
-        //     return;
-        // }
-        // if (forwardVelocity > this.maxSpeed * 0.5 && this.accelerationInput < 0) { //backward direction
-        //     return;
-        // }
-
-        // const angularV = this.rightVelocity.mag();
-        // if (angularV > this.maxSpeed && this.accelerationInput > 0) {//forward direction
-        //     return;
-        // }
-        // if (angularV > this.maxSpeed * 0.5 && this.accelerationInput < 0) { //backward direction
-        //     return;
-        // }
-
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         // Calculate movement direction
         let direction = cc.v2(Math.cos(radian), Math.sin(radian));
@@ -147,14 +109,6 @@ export default class CarPhysics extends cc.Component {
 
         // Apply force to move the car
         this.body.applyForceToCenter(force, true);
-    }
-
-    limitForceMagnitude(force: cc.Vec2, maxMagnitude: number): cc.Vec2 {
-        const currentMagnitude = force.mag();
-        if (currentMagnitude > maxMagnitude) {
-            return force.normalize().multiplyScalar(maxMagnitude);
-        }
-        return force;
     }
 
     applySteering(dt) {
@@ -167,15 +121,22 @@ export default class CarPhysics extends cc.Component {
         this.node.angle = degree;
     }
 
-    killOtrthogonalVelocity() {
-        // Calculate the new velocity and set it to the rigid this.body
-        let driftForce = this.rightVelocity.mul(this.driftFactor);
+    limitCarSpeed() {
+        const currentVelocity = this.body.linearVelocity;
+        const currentSpeed = currentVelocity.mag();
+        if (currentSpeed > this.maxSpeed) {
+            const limitedVelocity = currentVelocity.normalize().multiplyScalar(this.maxSpeed);
+            this.body.linearVelocity = limitedVelocity;
+        }
+    }
+
+    killOrthogonalVelocity() {
+        let driftForce = this.rightVelocity.multiplyScalar(this.driftFactor);
         const newVelocity = this.forwardVelocity.add(driftForce);
         this.body.linearVelocity = newVelocity;
     }
 
     isTireScreeching() {
-        this.isbraking = false;
 
         let fv = this.calcForwardVelocity();
         if (this.accelerationInput < 0 && fv > 10) {
