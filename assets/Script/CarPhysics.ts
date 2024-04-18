@@ -8,7 +8,7 @@ export default class CarPhysics extends cc.Component {
     @property
     public turnFactor = 300;    // turn speed
     @property
-    public driftFactor = 0;   // specify drift value
+    public driftMagnitude = 0;   // specify drift value
     @property
     private maxSpeed = 100;     // max speed
     private magnitude = 100;    // turn / speed magnitude
@@ -126,7 +126,12 @@ export default class CarPhysics extends cc.Component {
     }
 
     killOrthogonalVelocity() {
-        let driftForce = this.rightVelocity.multiplyScalar(this.driftFactor);
+        // let driftForce = this.rightVelocity.mul(this.driftFactor);
+        // const newVelocity = this.forwardVelocity.add(driftForce);
+        // this.body.linearVelocity = newVelocity;
+
+        let driftForceMagnitude = this.rightVelocity.mag() * this.driftMagnitude;
+        let driftForce = this.rightVelocity.normalize().multiplyScalar(driftForceMagnitude);
         const newVelocity = this.forwardVelocity.add(driftForce);
         this.body.linearVelocity = newVelocity;
     }

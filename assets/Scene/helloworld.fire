@@ -1070,9 +1070,9 @@
     },
     "_enabled": true,
     "accelerationFactor": 100,
-    "turnFactor": 300,
-    "driftFactor": 0.8,
-    "maxSpeed": 100,
+    "turnFactor": 200,
+    "driftMagnitude": 0.5,
+    "maxSpeed": 200,
     "_id": "6cJ6ZXzq9FoYnjkWxco7lI"
   },
   {
