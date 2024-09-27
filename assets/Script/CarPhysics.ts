@@ -3,13 +3,9 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class CarPhysics extends cc.Component {
 
-    @property
-    public accelerationFactor = 100;
-    @property
+    public accelerationFactor = 50;
     public turnFactor = 300;    // turn speed
-    @property
-    public driftMagnitude = 0;   // specify drift value
-    @property
+    public driftMagnitude = 0.98;   // specify drift value
     private maxSpeed = 100;     // max speed
     private magnitude = 100;    // turn / speed magnitude
 
@@ -18,6 +14,7 @@ export default class CarPhysics extends cc.Component {
     private accelerationInput = 0;
     private steeringInput = 0;
     private rotationAngle = 0;
+    private friction = 3;
 
     private body: cc.RigidBody = null;
 
@@ -90,12 +87,14 @@ export default class CarPhysics extends cc.Component {
     }
 
     applyForce(dt) {
-
         // linear damping
         if (this.accelerationInput == 0) {
-            this.body.linearDamping = cc.misc.lerp(this.body.linearDamping, 3, dt * 3);
-        } else
+            this.body.linearDamping = cc.misc.lerp(this.body.linearDamping, this.friction, dt * this.friction);
+            this.body.angularDamping = cc.misc.lerp(this.body.linearDamping, this.friction, dt * this.friction);
+        } else {
             this.body.linearDamping = 0;
+            this.body.angularDamping = 0;
+        }
 
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         // Calculate movement direction
@@ -139,6 +138,9 @@ export default class CarPhysics extends cc.Component {
     isTireScreeching() {
 
         let fv = this.calcForwardVelocity();
+        if (this.accelerationInput > 0 && fv < this.accelerationFactor) {
+            return true;
+        }
         if (this.accelerationInput < 0 && fv > 10) {
             return true;
         }
