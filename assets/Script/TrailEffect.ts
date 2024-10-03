@@ -1,4 +1,5 @@
 import CarPhysics from "./CarPhysics";
+import Controller from "./Controller";
 
 const { ccclass, property } = cc._decorator;
 
@@ -8,11 +9,11 @@ export default class TrailEffect extends cc.Component {
     @property(cc.Prefab)
     public skidMarkPrefab: cc.Prefab = null;
 
-    @property(CarPhysics)
-    car: CarPhysics = null;
-
     @property(cc.Node)
     skidLayer: cc.Node = null;
+
+    @property(Controller)
+    car: Controller = null;
 
     private skidMarkInterval = 1; // Interval between spawning skid marks
     private lastSkidMarkTime = 0;

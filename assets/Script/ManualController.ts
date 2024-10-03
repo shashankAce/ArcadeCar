@@ -1,7 +1,7 @@
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class CarController extends cc.Component {
+export default class ManualController extends cc.Component {
 
     speed: number = 150;
     rotationSpeed: number = 10;
