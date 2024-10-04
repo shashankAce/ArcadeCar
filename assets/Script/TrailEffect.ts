@@ -17,8 +17,8 @@ export default class TrailEffect extends cc.Component {
 
     private skidMarkInterval = 5; // Interval between spawning skid marks
     private lastSkidMarkTime = 0;
-    private fadingDuration: number = 1;
-    private trailArray = [];
+    private fadingDuration: number = 3;
+    private trailArray: cc.Node[] = [];
 
     start() {
         this.trailArray = [];
@@ -57,15 +57,14 @@ export default class TrailEffect extends cc.Component {
         this.trailArray.push(node);
 
         if (this.trailArray.length > 100) {
-            let extra = this.trailArray.splice(0, 100);
-            extra.forEach(skidMark => {
-                skidMark.runAction(cc.sequence(
-                    cc.fadeOut(this.fadingDuration),
-                    cc.callFunc(() => {
-                        skidMark.destroy(); // Destroy skid mark after fading out
-                    })
-                ));
-            });
+            // let extra = this.trailArray.splice(0, 100);
+            let skidMark = this.trailArray.shift();
+            skidMark.runAction(cc.sequence(
+                cc.fadeOut(this.fadingDuration),
+                cc.callFunc(() => {
+                    skidMark.destroy(); // Destroy skid mark after fading out
+                })
+            ));
         }
     }
 

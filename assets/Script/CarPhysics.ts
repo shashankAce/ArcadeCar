@@ -73,6 +73,16 @@ export default class CarPhysics extends cc.Component {
         this.limitCarSpeed();
     }
 
+    onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
+        console.log("Begin Contact with:", otherCollider.node.name);
+
+        // Example: Check if the other collider is of a specific node
+        if (otherCollider.node.name === 'TargetNode') {
+            // Handle collision logic with TargetNode
+            // this.handleCollisionWithTarget(otherCollider.node);
+        }
+    }
+
     applyForce(dt) {
         // linear damping
         if (this.accelerationInput == 0) {
