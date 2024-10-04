@@ -14,7 +14,7 @@ export default class CarPhysics extends cc.Component {
 
     public accelerationFactor = 50;
     public turnFactor = 300;    // turn speed
-    public driftMagnitude = 0.9;   // specify drift value
+    public driftMagnitude = 1;   // specify drift value
     private maxSpeed = 100;     // max speed
 
     private accelerationInput: number = 0;

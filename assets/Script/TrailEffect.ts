@@ -70,6 +70,8 @@ export default class TrailEffect extends cc.Component {
 
     createSkidMark() {
         let node = cc.instantiate(this.skidMarkPrefab);
+        node.width = 3;
+        node.height = 3;
 
         let node_pos = this.node.convertToWorldSpaceAR(cc.Vec3.ZERO);
         let pos = this.car.node.parent.convertToNodeSpaceAR(node_pos);
