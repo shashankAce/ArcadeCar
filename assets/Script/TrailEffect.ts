@@ -12,8 +12,8 @@ export default class TrailEffect extends cc.Component {
     @property(cc.Node)
     skidLayer: cc.Node = null;
 
-    @property(Controller)
-    car: Controller = null;
+    @property(CarPhysics)
+    car: CarPhysics = null;
 
     private skidMarkInterval = 1; // Interval between spawning skid marks
     private lastSkidMarkTime = 0;

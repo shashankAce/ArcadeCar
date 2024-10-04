@@ -5,14 +5,12 @@ export default class CarPhysics extends cc.Component {
 
     public accelerationFactor = 50;
     public turnFactor = 300;    // turn speed
-    public driftMagnitude = 0.98;   // specify drift value
-    private maxSpeed = 100;     // max speed
+    public driftMagnitude = 0.99;   // specify drift value
+    private maxSpeed = 300;     // max speed
     private magnitude = 100;    // turn / speed magnitude
 
-    private moveInput: number = 0;
-    private rotateInput: number = 0;
-    private accelerationInput = 0;
-    private steeringInput = 0;
+    private accelerationInput: number = 0;
+    private steeringInput: number = 0;
     private rotationAngle = 0;
     private friction = 3;
 
@@ -39,49 +37,38 @@ export default class CarPhysics extends cc.Component {
     onKeyDown(event: cc.Event.EventKeyboard) {
         switch (event.keyCode) {
             case cc.macro.KEY.up:
-                this.moveInput = 1;
+                this.accelerationInput = 1;
                 break;
             case cc.macro.KEY.down:
-                this.moveInput = -1;
+                this.accelerationInput = -1;
                 break;
             case cc.macro.KEY.left:
-                this.rotateInput = 1;
+                this.steeringInput = 1;
                 break;
             case cc.macro.KEY.right:
-                this.rotateInput = -1;
+                this.steeringInput = -1;
                 break;
         }
-        this.setInputVector();
     }
 
     onKeyUp(event: cc.Event.EventKeyboard) {
         switch (event.keyCode) {
             case cc.macro.KEY.up:
             case cc.macro.KEY.down:
-                this.moveInput = 0;
+                this.accelerationInput = 0;
                 break;
             case cc.macro.KEY.left:
             case cc.macro.KEY.right:
-                this.rotateInput = 0;
+                this.steeringInput = 0;
                 break;
-        }
-        this.setInputVector();
-    }
-
-    setInputVector() {
-        this.accelerationInput = this.moveInput;
-        this.steeringInput = this.rotateInput;
-        if (this.accelerationInput < 0) {
-            this.steeringInput = -this.rotateInput;
         }
     }
 
     update(dt: number) {
-        this.forwardVelocity = this.calculateForce();
-        this.rightVelocity = this.calculateSteerForce();
-
         this.applyForce(dt);
         this.applySteering(dt);
+        this.forwardVelocity = this.calculateForce();
+        this.rightVelocity = this.calculateSteerForce();
         this.killOrthogonalVelocity();
         this.limitCarSpeed();
     }
@@ -89,30 +76,38 @@ export default class CarPhysics extends cc.Component {
     applyForce(dt) {
         // linear damping
         if (this.accelerationInput == 0) {
-            this.body.linearDamping = cc.misc.lerp(this.body.linearDamping, this.friction, dt * this.friction);
-            this.body.angularDamping = cc.misc.lerp(this.body.linearDamping, this.friction, dt * this.friction);
+            this.body.linearDamping = this.friction * (1 - this.driftMagnitude);
         } else {
             this.body.linearDamping = 0;
-            this.body.angularDamping = 0;
         }
 
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
-        // Calculate movement direction
         let direction = cc.v2(Math.cos(radian), Math.sin(radian));
         let force = direction.mul(this.accelerationInput * this.accelerationFactor);
-
-        // Apply force to move the car
         this.body.applyForceToCenter(force, true);
     }
 
-    applySteering(dt) {
-        let minSpeedAllowed = this.body.linearVelocity.mag() / this.magnitude;
-        minSpeedAllowed = cc.misc.clamp01(minSpeedAllowed);
+    // applySteering(dt) {
+    //     let minSpeedAllowed = this.body.linearVelocity.mag() / this.magnitude;
+    //     minSpeedAllowed = cc.misc.clamp01(minSpeedAllowed);
+    //     this.rotationAngle -= this.steeringInput * this.turnFactor * minSpeedAllowed * dt;
+    //     const rotationRadians = this.rotationAngle * Math.PI / 180;
+    //     let degree = -cc.misc.radiansToDegrees(rotationRadians);
+    //     this.node.angle = degree;
+    // }
 
-        this.rotationAngle -= this.steeringInput * this.turnFactor * minSpeedAllowed * dt;
-        const rotationRadians = this.rotationAngle * Math.PI / 180;
-        let degree = -cc.misc.radiansToDegrees(rotationRadians);
-        this.node.angle = degree;
+    applySteering(dt: number) {
+        let velocityMag = this.body.linearVelocity.mag(); // Get the car's current speed
+        let speedFactor = cc.misc.clampf(velocityMag / this.maxSpeed, 0, 1); // Adjust the lower limit as needed (e.g., 0.3)
+
+        let forwardDirection = cc.v2(Math.cos(cc.misc.degreesToRadians(this.node.angle)), Math.sin(cc.misc.degreesToRadians(this.node.angle)));
+        let dotProduct = this.body.linearVelocity.dot(forwardDirection);
+        let isMovingForward = dotProduct > 0;
+        let steeringDir = isMovingForward ? -this.steeringInput : this.steeringInput;
+
+        this.rotationAngle -= steeringDir * this.turnFactor * speedFactor * dt;
+        const rotationRadians = cc.misc.degreesToRadians(this.rotationAngle);
+        this.node.angle = cc.misc.radiansToDegrees(rotationRadians);
     }
 
     limitCarSpeed() {
@@ -125,12 +120,12 @@ export default class CarPhysics extends cc.Component {
     }
 
     killOrthogonalVelocity() {
-        // let driftForce = this.rightVelocity.mul(this.driftFactor);
-        // const newVelocity = this.forwardVelocity.add(driftForce);
-        // this.body.linearVelocity = newVelocity;
+        let mag = this.rightVelocity.mag();
+        let normal = this.rightVelocity.normalize();
 
-        let driftForceMagnitude = this.rightVelocity.mag() * this.driftMagnitude;
-        let driftForce = this.rightVelocity.normalize().multiplyScalar(driftForceMagnitude);
+        let driftForceMagnitude = mag * this.driftMagnitude;
+        let driftForce = normal.mul(driftForceMagnitude);
+
         const newVelocity = this.forwardVelocity.add(driftForce);
         this.body.linearVelocity = newVelocity;
     }
@@ -144,13 +139,10 @@ export default class CarPhysics extends cc.Component {
         if (this.accelerationInput < 0 && fv > 10) {
             return true;
         }
-
         if (this.rightVelocity.mag() > 20.0) {
             return true;
         }
-
         return false;
-
     }
 
     private calcForwardVelocity() {
