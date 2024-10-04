@@ -1,17 +1,24 @@
 const { ccclass, property } = cc._decorator;
 
+enum Surface {
+    NONE,
+    SAND,
+    GRASS,
+    OIL
+}
+
 @ccclass
 export default class CarPhysics extends cc.Component {
+
+    private rotationAngle = 0;
 
     public accelerationFactor = 50;
     public turnFactor = 300;    // turn speed
     public driftMagnitude = 0.98;   // specify drift value
     private maxSpeed = 300;     // max speed
-    private magnitude = 100;    // turn / speed magnitude
 
     private accelerationInput: number = 0;
     private steeringInput: number = 0;
-    private rotationAngle = 0;
     private friction = 3;
 
     private body: cc.RigidBody = null;
@@ -19,6 +26,7 @@ export default class CarPhysics extends cc.Component {
     public forwardVelocity = cc.v2()
     public rightVelocity = cc.v2();
 
+    private surface = Surface.NONE;
 
     onLoad() {
         this.body = this.node.getComponent(cc.RigidBody);
@@ -75,12 +83,37 @@ export default class CarPhysics extends cc.Component {
 
     onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
         console.log("Begin Contact with:", otherCollider.node.name);
-
-        // Example: Check if the other collider is of a specific node
-        if (otherCollider.node.name === 'TargetNode') {
-            // Handle collision logic with TargetNode
-            // this.handleCollisionWithTarget(otherCollider.node);
+        switch (otherCollider.node.name) {
+            case 'oil':
+                this.surface = Surface.OIL;
+                break;
+            case 'sand':
+                this.surface = Surface.OIL;
+                break;
+            case 'grass':
+                this.surface = Surface.OIL;
+                break;
+            default:
+                break;
         }
+    }
+
+    onEndContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
+        console.log("End Contact with:", otherCollider.node.name);
+        /* switch (otherCollider.node.name) {
+            case 'oil':
+                this.surface = Surface.NONE;
+                break;
+            case 'sand':
+                this.surface = Surface.OIL;
+                break;
+            case 'grass':
+                this.surface = Surface.OIL;
+                break;
+            default:
+                break;
+        } */
+        this.surface = Surface.NONE;
     }
 
     applyForce(dt) {
@@ -91,20 +124,26 @@ export default class CarPhysics extends cc.Component {
             this.body.linearDamping = 0;
         }
 
+        switch (this.surface) {
+            case Surface.OIL:
+                this.body.linearDamping = 0;
+                break;
+            case Surface.SAND:
+                this.body.linearDamping = this.friction * 1.5 * (1 - this.driftMagnitude);
+                break;
+            case Surface.GRASS:
+                this.body.linearDamping = this.friction * 0.8 * (1 - this.driftMagnitude);
+                break;
+
+            default:
+                break;
+        }
+
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         let direction = cc.v2(Math.cos(radian), Math.sin(radian));
         let force = direction.mul(this.accelerationInput * this.accelerationFactor);
         this.body.applyForceToCenter(force, true);
     }
-
-    // applySteering(dt) {
-    //     let minSpeedAllowed = this.body.linearVelocity.mag() / this.magnitude;
-    //     minSpeedAllowed = cc.misc.clamp01(minSpeedAllowed);
-    //     this.rotationAngle -= this.steeringInput * this.turnFactor * minSpeedAllowed * dt;
-    //     const rotationRadians = this.rotationAngle * Math.PI / 180;
-    //     let degree = -cc.misc.radiansToDegrees(rotationRadians);
-    //     this.node.angle = degree;
-    // }
 
     applySteering(dt: number) {
         let velocityMag = this.body.linearVelocity.mag(); // Get the car's current speed
