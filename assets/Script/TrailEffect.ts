@@ -15,9 +15,9 @@ export default class TrailEffect extends cc.Component {
     @property(CarPhysics)
     car: CarPhysics = null;
 
-    private skidMarkInterval = 1; // Interval between spawning skid marks
+    private skidMarkInterval = 5; // Interval between spawning skid marks
     private lastSkidMarkTime = 0;
-    private fadingDuration: number = 3;
+    private fadingDuration: number = 1;
     private trailArray = [];
 
     start() {
