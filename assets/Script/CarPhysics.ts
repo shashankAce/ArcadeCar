@@ -1,3 +1,7 @@
+import { clientEvent } from "./EventMechanism/ClientEvent";
+import { EventName } from "./EventMechanism/EventNames";
+import { PopupId } from "./PopupManager";
+
 const { ccclass, property } = cc._decorator;
 
 enum Surface {
@@ -83,12 +87,22 @@ export default class CarPhysics extends cc.Component {
 
     onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
         console.log("Begin Contact with:", otherCollider.node.name);
-
         switch (otherCollider.node.name) {
-            case '':
-                
+            case 'Intro':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.INTRO, true);
                 break;
-        
+            case 'Education':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.EDUCATION, true);
+                break;
+            case 'Experience':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.EXPERIENCE, true);
+                break;
+            case 'Projects':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.PROJECTS, true);
+                break;
+            case 'Skills':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.SKILLS, true);
+                break;
             default:
                 break;
         }
@@ -110,19 +124,25 @@ export default class CarPhysics extends cc.Component {
 
     onEndContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
         console.log("End Contact with:", otherCollider.node.name);
-        /* switch (otherCollider.node.name) {
-            case 'oil':
-                this.surface = Surface.NONE;
+        switch (otherCollider.node.name) {
+            case 'Intro':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.INTRO, false);
                 break;
-            case 'sand':
-                this.surface = Surface.OIL;
+            case 'Education':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.EDUCATION, false);
                 break;
-            case 'grass':
-                this.surface = Surface.OIL;
+            case 'Experience':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.EXPERIENCE, false);
+                break;
+            case 'Projects':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.PROJECTS, false);
+                break;
+            case 'Skills':
+                clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.SKILLS, false);
                 break;
             default:
                 break;
-        } */
+        }
         this.surface = Surface.NONE;
     }
 

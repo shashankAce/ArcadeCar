@@ -40,12 +40,29 @@ export default class VideoManager extends cc.Component {
     @property(VideoObject)
     videosArr: VideoObject[] = [];
 
+    private maps: Map<VideoPlayerId, VideoObject> = null;
+
     protected onLoad(): void {
-        clientEvent.on(EventName.OnShowVideo, this.showVideo)
+        clientEvent.on(EventName.OnShowVideo, this.showVideo, this);
     }
 
     showVideo(videoId: VideoPlayerId) {
-        this.videosArr[videoId].videoClip.show();
+        let video = this.getVideoObject(videoId);
+        video.videoClip.show();
+    }
+
+    getVideoObject(name: VideoPlayerId) {
+        if (!this.maps) {
+            this.initMaps();
+        }
+        return this.maps.get(name);
+    }
+
+    initMaps() {
+        this.maps = new Map<VideoPlayerId, VideoObject>();
+        this.videosArr.forEach((obj, i) => {
+            this.maps.set(obj.name, obj);
+        });
     }
 
 }

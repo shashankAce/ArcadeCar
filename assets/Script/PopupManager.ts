@@ -39,13 +39,34 @@ export default class PopupManager extends cc.Component {
 
     @property(PopObject)
     popupArr: PopObject[] = [];
+    private maps: Map<PopupId, PopObject> = null;
+
 
     protected onLoad(): void {
-        clientEvent.on(EventName.OnShowPopup, this.showPopup)
+        clientEvent.on(EventName.OnShowPopup, this.showPopup, this)
     }
 
-    showPopup(id: PopupId) {
-        this.popupArr[id].handler.show();
+    showPopup(popupId: PopupId, toshow: boolean) {
+        let popup = this.getPopupObject(popupId);
+        if (toshow) {
+            popup.handler.show();
+        }else{
+            popup.handler.onClose();
+        }
+    }
+
+    getPopupObject(name: PopupId) {
+        if (!this.maps) {
+            this.initMaps();
+        }
+        return this.maps.get(name);
+    }
+
+    initMaps() {
+        this.maps = new Map<PopupId, PopObject>();
+        this.popupArr.forEach((obj, i) => {
+            this.maps.set(obj.name, obj);
+        });
     }
 
 }
