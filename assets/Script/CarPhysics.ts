@@ -14,7 +14,7 @@ export default class CarPhysics extends cc.Component {
 
     public accelerationFactor = 50;
     public turnFactor = 300;    // turn speed
-    public driftMagnitude = 1;   // specify drift value
+    public driftMagnitude = 0.98;   // specify drift value
     private maxSpeed = 100;     // max speed
 
     private accelerationInput: number = 0;
@@ -83,7 +83,17 @@ export default class CarPhysics extends cc.Component {
 
     onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
         console.log("Begin Contact with:", otherCollider.node.name);
+
         switch (otherCollider.node.name) {
+            case '':
+                
+                break;
+        
+            default:
+                break;
+        }
+
+        /* switch (otherCollider.node.name) {
             case 'oil':
                 this.surface = Surface.OIL;
                 break;
@@ -95,7 +105,7 @@ export default class CarPhysics extends cc.Component {
                 break;
             default:
                 break;
-        }
+        } */
     }
 
     onEndContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
@@ -119,7 +129,8 @@ export default class CarPhysics extends cc.Component {
     applyForce(dt) {
         // linear damping
         if (this.accelerationInput == 0) {
-            this.body.linearDamping = this.friction * (1 - this.driftMagnitude);
+            // this.body.linearDamping = this.friction * (1 - this.driftMagnitude);
+            this.body.linearDamping = this.friction;
         } else {
             this.body.linearDamping = 0;
         }
