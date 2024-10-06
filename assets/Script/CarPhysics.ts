@@ -1,5 +1,6 @@
 import { clientEvent } from "./EventMechanism/ClientEvent";
 import { EventName } from "./EventMechanism/EventNames";
+import { SIGNAL } from "./GameController";
 import { PopupId } from "./PopupManager";
 
 const { ccclass, property } = cc._decorator;
@@ -31,6 +32,7 @@ export default class CarPhysics extends cc.Component {
     public rightVelocity = cc.v2();
 
     private surface = Surface.NONE;
+    signal = SIGNAL.RED;
 
     onLoad() {
         this.body = this.node.getComponent(cc.RigidBody);
@@ -38,7 +40,9 @@ export default class CarPhysics extends cc.Component {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
 
-        cc.view.enableAutoFullScreen(true);
+        clientEvent.on(EventName.OnGameStart, () => {
+            this.signal = SIGNAL.GREEN;
+        });
     }
 
     onDisable() {
@@ -77,6 +81,8 @@ export default class CarPhysics extends cc.Component {
     }
 
     update(dt: number) {
+        if (this.signal == SIGNAL.RED)
+            return;
         this.applyForce(dt);
         this.applySteering(dt);
         this.forwardVelocity = this.calculateForce();
@@ -87,6 +93,7 @@ export default class CarPhysics extends cc.Component {
 
     onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
         console.log("Begin Contact with:", otherCollider.node.name);
+        // return;
         switch (otherCollider.node.name) {
             case 'Intro':
                 clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.INTRO, true);

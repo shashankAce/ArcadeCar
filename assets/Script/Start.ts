@@ -5,6 +5,9 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import { clientEvent } from "./EventMechanism/ClientEvent";
+import { EventName } from "./EventMechanism/EventNames";
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -36,6 +39,7 @@ export default class Start extends cc.Component {
     onClose() {
         if (this.isFading)
             return;
+        clientEvent.dispatchEvent(EventName.OnGameStart);
         this.isFading = true;
         cc.tween(this.node)
             .to(this.tweenTime, { opacity: 0 })
