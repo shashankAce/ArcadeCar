@@ -79,7 +79,7 @@ export class OneToMultiListener {
 
     public static setSupportEventList (arrSupportEvent: string[]) {
         if (!(arrSupportEvent instanceof Array)) {
-             console.log("supportEvent was not array");
+             cc.log("supportEvent was not array");
             return false;
         }
 

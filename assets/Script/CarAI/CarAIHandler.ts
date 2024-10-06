@@ -1,3 +1,4 @@
+import CarPhysics from "../CarPhysics";
 import { clientEvent } from "../EventMechanism/ClientEvent";
 import { EventName } from "../EventMechanism/EventNames";
 import { SIGNAL } from "../GameController";
@@ -12,32 +13,30 @@ enum Surface {
 }
 
 @ccclass
-export default class CarAIHandler extends cc.Component {
+export default class CarAIHandler extends CarPhysics {
 
-    private rotationAngle = 0;
+    public rotationAngle = 0;
 
     public accelerationFactor = 50;
     public turnFactor = 300;
     public driftMagnitude = 0.98;
-    private maxSpeed = 100;
+    protected maxSpeed = 100;
 
-    private accelerationInput: number = 1;  // AI will always accelerate forward
-    private steeringInput: number = 0;
-    private friction = 3;
+    public accelerationInput: number = 1;  // AI will always accelerate forward
+    protected steeringInput: number = 0;
+    protected friction = 3;
 
-    private body: cc.RigidBody = null;
+    protected body: cc.RigidBody = null;
 
     public forwardVelocity = cc.v2();
     public rightVelocity = cc.v2();
-
-    private surface = Surface.NONE;
 
     @property(cc.Node)
     waypointsNode: cc.Node = null;
 
     waypoints: cc.Node[] = [];  // List of waypoints for the AI car to follow
 
-    private currentWaypointIndex: number = 0;  // The index of the current waypoint
+    protected currentWaypointIndex: number = 0;  // The index of the current waypoint
 
     @property
     waypointThreshold: number = 10;  // Distance to switch to the next waypoint
@@ -48,15 +47,14 @@ export default class CarAIHandler extends cc.Component {
     @property
     reverseDuration: number = 0.5;  // How long the car should reverse when stuck (in seconds)
 
-    private reversing: boolean = false;
-    private reverseTimer: number = 0;
+    protected reversing: boolean = false;
+    protected reverseTimer: number = 0;
 
-    private waypointsCompleted: boolean = false;  // Flag to check if all waypoints are finished
+    protected waypointsCompleted: boolean = false;  // Flag to check if all waypoints are finished
 
     @property
     reverseSpeedFactor: number = 0.5;  // Reverse speed limit (half of the forward speed)
 
-    signal = SIGNAL.RED;
     onLoad() {
         this.body = this.node.getComponent(cc.RigidBody);
         this.waypoints = this.waypointsNode.children;
@@ -175,6 +173,36 @@ export default class CarAIHandler extends cc.Component {
         }
     }
 
+    onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
+        // cc.log("Begin Contact with:", otherCollider.node.name);
+    }
+
+    onEndContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
+        // cc.log("End Contact with:", otherCollider.node.name);
+    }
+
+    isTireScreeching() {
+
+        let fv = this.calcForwardVelocity();
+        if (this.accelerationInput > 0 && fv < this.accelerationFactor) {
+            return true;
+        }
+        if (this.accelerationInput < 0 && fv > 10) {
+            return true;
+        }
+        if (this.rightVelocity.mag() > 20.0) {
+            return true;
+        }
+        return false;
+    }
+
+
+    protected calcForwardVelocity() {
+        let radian = -cc.misc.degreesToRadians(-this.node.angle);
+        let forward = cc.v2(Math.cos(radian), Math.sin(radian));
+        return cc.Vec2.dot(this.body.linearVelocity, forward);
+    }
+
     applyForce(dt) {
         // Apply linear damping and control acceleration input
         if (this.accelerationInput == 0) {
@@ -233,13 +261,13 @@ export default class CarAIHandler extends cc.Component {
         this.body.linearVelocity = newVelocity;
     }
 
-    private calculateForce(): cc.Vec2 {
+    protected calculateForce(): cc.Vec2 {
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         let forward = cc.v2(Math.cos(radian), Math.sin(radian));
         return forward.multiplyScalar(cc.Vec2.dot(this.body.linearVelocity, forward));
     }
 
-    private calculateSteerForce(): cc.Vec2 {
+    protected calculateSteerForce(): cc.Vec2 {
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         let forward = cc.v2(Math.cos(radian), Math.sin(radian));
         return forward.multiplyScalar(cc.Vec2.dot(this.body.linearVelocity, forward));

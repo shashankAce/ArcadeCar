@@ -15,24 +15,24 @@ enum Surface {
 @ccclass
 export default class CarPhysics extends cc.Component {
 
-    private rotationAngle = 0;
+    protected rotationAngle = 0;
 
-    public accelerationFactor = 50;
-    public turnFactor = 300;    // turn speed
-    public driftMagnitude = 0.98;   // specify drift value
-    private maxSpeed = 100;     // max speed
+    protected accelerationFactor = 50;
+    protected turnFactor = 300;    // turn speed
+    protected driftMagnitude = 0.98;   // specify drift value
+    protected maxSpeed = 100;     // max speed
 
-    private accelerationInput: number = 0;
-    private steeringInput: number = 0;
-    private friction = 3;
+    protected accelerationInput: number = 0;
+    protected steeringInput: number = 0;
+    protected friction = 3;
 
-    private body: cc.RigidBody = null;
+    protected body: cc.RigidBody = null;
 
-    public forwardVelocity = cc.v2()
-    public rightVelocity = cc.v2();
+    protected forwardVelocity = cc.v2()
+    protected rightVelocity = cc.v2();
 
-    private surface = Surface.NONE;
-    signal = SIGNAL.RED;
+    protected surface = Surface.NONE;
+    protected signal = SIGNAL.RED;
 
     onLoad() {
         this.body = this.node.getComponent(cc.RigidBody);
@@ -92,7 +92,7 @@ export default class CarPhysics extends cc.Component {
     }
 
     onBeginContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
-        console.log("Begin Contact with:", otherCollider.node.name);
+        // cc.log("Begin Contact with:", otherCollider.node.name);
         // return;
         switch (otherCollider.node.name) {
             case 'Intro':
@@ -130,7 +130,7 @@ export default class CarPhysics extends cc.Component {
     }
 
     onEndContact(contact: cc.PhysicsContact, selfCollider: cc.PhysicsCollider, otherCollider: cc.PhysicsCollider) {
-        console.log("End Contact with:", otherCollider.node.name);
+        // cc.log("End Contact with:", otherCollider.node.name);
         switch (otherCollider.node.name) {
             case 'Intro':
                 clientEvent.dispatchEvent(EventName.OnShowPopup, PopupId.INTRO, false);
@@ -232,20 +232,20 @@ export default class CarPhysics extends cc.Component {
         return false;
     }
 
-    private calcForwardVelocity() {
+    protected calcForwardVelocity() {
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         let forward = cc.v2(Math.cos(radian), Math.sin(radian));
         return cc.Vec2.dot(this.body.linearVelocity, forward);
     }
 
-    private calculateForce(): cc.Vec2 {
+    protected calculateForce(): cc.Vec2 {
         // Assuming forward direction is along the y-axis in Cocos Creator
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         let forward = cc.v2(Math.cos(radian), Math.sin(radian));
         return forward.multiplyScalar(cc.Vec2.dot(this.body.linearVelocity, forward));
     }
 
-    private calculateSteerForce(): cc.Vec2 {
+    protected calculateSteerForce(): cc.Vec2 {
         // Assuming right direction is along the x-axis in Cocos Creator
         // Assuming forward direction is along the y-axis in Cocos Creator
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
