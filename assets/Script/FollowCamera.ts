@@ -7,9 +7,6 @@ export default class CameraControl extends cc.Component {
     @property(cc.Node)
     car: cc.Node = null;
 
-    @property(cc.Node)
-    followNodes: cc.Node[] = [];
-
     protected onLoad(): void {
         let targetPos = this.car.getPosition();
         targetPos.x = cc.misc.clampf(targetPos.x, -cc.winSize.width / 2, cc.winSize.width / 2);
@@ -29,9 +26,5 @@ export default class CameraControl extends cc.Component {
         let currentPos = this.node.getPosition();
         currentPos.lerp(targetPos, 0.2, currentPos);
         this.node.setPosition(currentPos);
-
-        this.followNodes.forEach(node=>{
-            node.setPosition(currentPos);
-        })
     }
 }
