@@ -15,13 +15,6 @@ enum Surface {
 @ccclass
 export default class CarAIHandler extends CarPhysics {
 
-    public rotationAngle = 0;
-
-    public accelerationFactor = 50;
-    public turnFactor = 300;
-    public driftMagnitude = 0.98;
-    protected maxSpeed = 100;
-
     public accelerationInput: number = 1;  // AI will always accelerate forward
     protected steeringInput: number = 0;
     protected friction = 3;
@@ -56,15 +49,11 @@ export default class CarAIHandler extends CarPhysics {
     reverseSpeedFactor: number = 0.5;  // Reverse speed limit (half of the forward speed)
 
     onLoad() {
-        this.body = this.node.getComponent(cc.RigidBody);
         this.waypoints = this.waypointsNode.children;
-
-        clientEvent.on(EventName.OnGameStart, () => {
-            this.signal = SIGNAL.GREEN;
-        })
+        super.onLoad();
     }
 
-    update(dt: number) {
+    carUpdate(dt) {
         if (this.signal == SIGNAL.RED)
             return;
         if (this.currentWaypointIndex >= this.waypoints.length) {
@@ -226,7 +215,7 @@ export default class CarAIHandler extends CarPhysics {
         let isMovingForward = dotProduct > 0;
         let steeringDir = isMovingForward ? -this.steeringInput : this.steeringInput;
 
-        this.rotationAngle -= steeringDir * this.turnFactor * speedFactor * dt;
+        this.rotationAngle -= steeringDir * this.turnFactor * speedFactor;
         const rotationRadians = cc.misc.degreesToRadians(this.rotationAngle);
         this.node.angle = cc.misc.radiansToDegrees(rotationRadians);
     }

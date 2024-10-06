@@ -1,3 +1,4 @@
+import CarInput from "./CarInput";
 import { clientEvent } from "./EventMechanism/ClientEvent";
 import { EventName } from "./EventMechanism/EventNames";
 import { SIGNAL } from "./GameController";
@@ -13,14 +14,14 @@ enum Surface {
 }
 
 @ccclass
-export default class CarPhysics extends cc.Component {
+export default class CarPhysics extends CarInput {
 
     protected rotationAngle = 0;
 
-    protected accelerationFactor = 50;
-    protected turnFactor = 300;    // turn speed
-    protected driftMagnitude = 0.98;   // specify drift value
-    protected maxSpeed = 100;     // max speed
+    protected accelerationFactor = 200;
+    protected turnFactor = 8;    // turn speed
+    protected driftMagnitude = 0.9;   // specify drift value
+    protected maxSpeed = 300;     // max speed
 
     protected accelerationInput: number = 0;
     protected steeringInput: number = 0;
@@ -35,52 +36,26 @@ export default class CarPhysics extends cc.Component {
     protected signal = SIGNAL.RED;
 
     onLoad() {
+        super.onLoad();
         this.body = this.node.getComponent(cc.RigidBody);
         cc.director.getPhysicsManager().enabled = true;
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+        cc.view.enableAutoFullScreen(true);
 
         clientEvent.on(EventName.OnGameStart, () => {
             this.signal = SIGNAL.GREEN;
         });
+
+        let frameRate = 61;
+        cc.game.setFrameRate(frameRate);
+        // this.schedule(this.carUpdate.bind(this), 1 / frameRate);
+
     }
 
-    onDisable() {
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+    protected lateUpdate(dt: number): void {
+        this.carUpdate(dt);
     }
 
-    onKeyDown(event: cc.Event.EventKeyboard) {
-        switch (event.keyCode) {
-            case cc.macro.KEY.up:
-                this.accelerationInput = 1;
-                break;
-            case cc.macro.KEY.down:
-                this.accelerationInput = -1;
-                break;
-            case cc.macro.KEY.left:
-                this.steeringInput = 1;
-                break;
-            case cc.macro.KEY.right:
-                this.steeringInput = -1;
-                break;
-        }
-    }
-
-    onKeyUp(event: cc.Event.EventKeyboard) {
-        switch (event.keyCode) {
-            case cc.macro.KEY.up:
-            case cc.macro.KEY.down:
-                this.accelerationInput = 0;
-                break;
-            case cc.macro.KEY.left:
-            case cc.macro.KEY.right:
-                this.steeringInput = 0;
-                break;
-        }
-    }
-
-    update(dt: number) {
+    carUpdate(dt) {
         if (this.signal == SIGNAL.RED)
             return;
         this.applyForce(dt);
@@ -161,21 +136,20 @@ export default class CarPhysics extends cc.Component {
         } else {
             this.body.linearDamping = 0;
         }
+        // switch (this.surface) {
+        //     case Surface.OIL:
+        //         this.body.linearDamping = 0;
+        //         break;
+        //     case Surface.SAND:
+        //         this.body.linearDamping = this.friction * 1.5 * (1 - this.driftMagnitude);
+        //         break;
+        //     case Surface.GRASS:
+        //         this.body.linearDamping = this.friction * 0.8 * (1 - this.driftMagnitude);
+        //         break;
 
-        switch (this.surface) {
-            case Surface.OIL:
-                this.body.linearDamping = 0;
-                break;
-            case Surface.SAND:
-                this.body.linearDamping = this.friction * 1.5 * (1 - this.driftMagnitude);
-                break;
-            case Surface.GRASS:
-                this.body.linearDamping = this.friction * 0.8 * (1 - this.driftMagnitude);
-                break;
-
-            default:
-                break;
-        }
+        //     default:
+        //         break;
+        // }
 
         let radian = -cc.misc.degreesToRadians(-this.node.angle);
         let direction = cc.v2(Math.cos(radian), Math.sin(radian));
@@ -192,7 +166,7 @@ export default class CarPhysics extends cc.Component {
         let isMovingForward = dotProduct > 0;
         let steeringDir = isMovingForward ? -this.steeringInput : this.steeringInput;
 
-        this.rotationAngle -= steeringDir * this.turnFactor * speedFactor * dt;
+        this.rotationAngle -= steeringDir * this.turnFactor * speedFactor;
         const rotationRadians = cc.misc.degreesToRadians(this.rotationAngle);
         this.node.angle = cc.misc.radiansToDegrees(rotationRadians);
     }
